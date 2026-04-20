@@ -1,0 +1,51 @@
+name: pagos-prod
+
+services:
+  mysql-pagos:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${PAGOS_MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${PAGOS_MYSQL_DATABASE}
+    ports:
+      - "3393:3306" # Tu máquina (cliente externo) → MySQL prod
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -p${PAGOS_MYSQL_ROOT_PASSWORD} || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    volumes:
+      - mysql_pagos_data:/var/lib/mysql
+    networks:
+      - pagos-int
+
+  pagos:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      mysql-pagos:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-pagos:3306/${PAGOS_MYSQL_DATABASE}
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${PAGOS_MYSQL_ROOT_PASSWORD}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL}
+      SPRING_CONFIG_IMPORT: optional:configserver:${CONFIG_SERVER_URL}
+    ports:
+      - "8093:8093"
+    networks:
+      - pagos-int
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8093/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  mysql_pagos_data:
+
+networks:
+  pagos-int:

@@ -1,0 +1,7 @@
+com\upeu\pagos\repository\PagoRepository.class
+com\upeu\pagos\PagosApplication.class
+com\upeu\pagos\service\PagoService.class
+com\upeu\pagos\entity\Pago.class
+com\upeu\pagos\dto\PagoDTO.class
+com\upeu\pagos\client\VentaFeignClient.class
+com\upeu\pagos\controller\PagoController.class

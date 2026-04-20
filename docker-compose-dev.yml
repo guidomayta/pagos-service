@@ -1,0 +1,18 @@
+name: pagos-dev
+
+services:
+  pagos:
+    build: .
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://localhost:8761/eureka/
+      SPRING_CONFIG_IMPORT: optional:configserver:http://localhost:7071
+    ports:
+      - "8093:8093"
+    networks:
+      - pagos-network
+
+networks:
+  pagos-network:
+    driver: bridge
